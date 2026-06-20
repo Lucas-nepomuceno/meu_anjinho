@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Meu Anjinho</string>
+    <string name="descricao1">O que o seu anjinho conquistou hoje?</string>
+    <string name="descricao2">Adicione o novo aprendizado do seu anjinho...</string>
+    <string name="descricao3">Conte mais sobre seu anjinho...</string>
 </resources>

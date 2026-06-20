@@ -1,5 +1,7 @@
 package com.example.meuanjinho.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -14,10 +16,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.meuanjinho.R
+import com.example.meuanjinho.screens.AdicionarRegistroScreen
 import com.example.meuanjinho.screens.CriancasScreen
 import com.example.meuanjinho.screens.HomeScreen
 import com.example.meuanjinho.screens.RegistrosScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation() {
 
@@ -76,7 +80,7 @@ fun AppNavigation() {
         ) {
 
             composable("home") {
-                HomeScreen()
+                HomeScreen(navController)
             }
 
             composable("registros") {
@@ -86,6 +90,11 @@ fun AppNavigation() {
             composable("criancas") {
                 CriancasScreen()
             }
+
+            composable("adicionar_registro") {
+                AdicionarRegistroScreen(navController)
+            }
+
         }
     }
 }
