@@ -23,7 +23,8 @@ import com.example.meuanjinho.screens.RegistrosScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+) {
 
     val navController = rememberNavController()
 
