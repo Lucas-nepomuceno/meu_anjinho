@@ -6,7 +6,7 @@
 
 ## Demonstração do aplicativo
 
-&emsp; O vídeo de demonstração de uso do aplicativo está neste link:
+&emsp; O vídeo de demonstração de uso do aplicativo está [neste link](https://youtu.be/FFJ6XFZsm70)
 
 ## Tecnologias utilizadas
 
