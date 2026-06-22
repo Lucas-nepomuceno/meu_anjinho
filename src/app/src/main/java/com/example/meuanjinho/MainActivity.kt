@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.room.Room
+import com.example.meuanjinho.database.AppDatabase
 import com.example.meuanjinho.navigation.AppNavigation
 import com.meu_anjinho.ui.theme.MeuAnjinhoTheme
 
@@ -20,13 +22,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        val db: AppDatabase = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "meu_anjinho"
+        ).build()
+
         setContent {
             MeuAnjinhoTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation()
+                    AppNavigation(db = db)
                 }
             }
         }

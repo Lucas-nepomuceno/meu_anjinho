@@ -58,7 +58,8 @@ fun HomeScreen(
                 style = MaterialTheme.typography.headlineSmall
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(modifier = Modifier.height(24.dp))
 
             // Conteúdo da tela
         }

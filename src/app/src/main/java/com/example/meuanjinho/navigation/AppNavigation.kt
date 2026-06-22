@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.meuanjinho.R
+import com.example.meuanjinho.database.AppDatabase
 import com.example.meuanjinho.screens.AdicionarRegistroScreen
 import com.example.meuanjinho.screens.CriancasScreen
 import com.example.meuanjinho.screens.HomeScreen
@@ -24,6 +25,7 @@ import com.example.meuanjinho.screens.RegistrosScreen
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
+    db: AppDatabase
 ) {
 
     val navController = rememberNavController()
@@ -89,7 +91,7 @@ fun AppNavigation(
             }
 
             composable("criancas") {
-                CriancasScreen()
+                CriancasScreen(db = db)
             }
 
             composable("adicionar_registro") {
