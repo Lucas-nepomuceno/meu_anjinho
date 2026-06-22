@@ -27,6 +27,9 @@ interface RegistroDao {
     @Query("SELECT * FROM registro")
     suspend fun getAll(): List<Registro>
 
+    @Query("SELECT * FROM registro WHERE data_criacao = :data")
+    suspend fun getRegistrosDoDia(data: String): List<Registro>
+
     @Query("SELECT * FROM registro WHERE uid IN (:registroIds)")
     suspend fun loadAllByIds(registroIds: IntArray): List<Registro>
 

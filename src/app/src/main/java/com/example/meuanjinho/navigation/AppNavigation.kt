@@ -83,7 +83,7 @@ fun AppNavigation(
         ) {
 
             composable("home") {
-                HomeScreen(navController)
+                HomeScreen(navController, db)
             }
 
             composable("registros") {
