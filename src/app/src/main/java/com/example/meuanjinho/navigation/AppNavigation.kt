@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -26,10 +28,10 @@ import com.example.meuanjinho.screens.RegistrosScreen
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation(
-    db: AppDatabase
+    db: AppDatabase,
+    navController: NavHostController
 ) {
 
-    val navController = rememberNavController()
 
     val currentRoute =
         navController.currentBackStackEntryAsState().value?.destination?.route

@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.ui.text)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.places)
     val room_version = "2.8.4"
 
@@ -52,6 +53,8 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation("androidx.core:core-ktx:1.13.1")
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation("androidx.core:core-ktx:1.17.0")
