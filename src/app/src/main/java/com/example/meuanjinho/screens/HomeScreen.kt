@@ -101,14 +101,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Registros de hoje",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
             if (registrosHoje.isEmpty()) {
                 Text(
                     text = "Nenhum registro adicionado hoje.",

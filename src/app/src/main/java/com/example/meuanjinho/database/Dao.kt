@@ -30,8 +30,11 @@ interface RegistroDao {
     @Query("SELECT * FROM registro WHERE data_criacao = :data")
     suspend fun getRegistrosDoDia(data: String): List<Registro>
 
-    @Query("SELECT * FROM registro WHERE uid IN (:registroIds)")
-    suspend fun loadAllByIds(registroIds: IntArray): List<Registro>
+    @Query("SELECT * FROM registro ORDER BY data_criacao DESC, uid DESC")
+    suspend fun getTodosOrdenadosPorData(): List<Registro>
+
+    @Query("SELECT * FROM registro WHERE uid = :registroId LIMIT 1")
+    suspend fun getRegistroById(registroId: Int): Registro?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(vararg registros: Registro)

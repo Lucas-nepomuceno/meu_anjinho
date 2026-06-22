@@ -19,6 +19,7 @@ import com.example.meuanjinho.R
 import com.example.meuanjinho.database.AppDatabase
 import com.example.meuanjinho.screens.AdicionarRegistroScreen
 import com.example.meuanjinho.screens.CriancasScreen
+import com.example.meuanjinho.screens.DetalheRegistroScreen
 import com.example.meuanjinho.screens.HomeScreen
 import com.example.meuanjinho.screens.RegistrosScreen
 
@@ -87,7 +88,7 @@ fun AppNavigation(
             }
 
             composable("registros") {
-                RegistrosScreen(db)
+                RegistrosScreen(navController, db)
             }
 
             composable("criancas") {
@@ -98,6 +99,19 @@ fun AppNavigation(
                 AdicionarRegistroScreen(navController, db)
             }
 
+            composable("detalhe_registro/{registroId}") { backStackEntry ->
+                val registroId = backStackEntry.arguments
+                    ?.getString("registroId")
+                    ?.toIntOrNull()
+
+                if (registroId != null) {
+                    DetalheRegistroScreen(
+                        navController = navController,
+                        db = db,
+                        registroId = registroId
+                    )
+                }
+            }
         }
     }
 }
