@@ -14,12 +14,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -28,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +45,8 @@ import androidx.navigation.NavController
 import com.example.meuanjinho.R
 import com.example.meuanjinho.database.AppDatabase
 import com.example.meuanjinho.database.Registro
+import com.example.meuanjinho.network.BackupService
+import com.example.meuanjinho.network.RetrofitClient
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -52,6 +60,7 @@ fun RegistrosScreen(
 ) {
     val registroDao = db.registroDao()
 
+
     var registros by remember {
         mutableStateOf<List<Registro>>(emptyList())
     }
@@ -61,6 +70,31 @@ fun RegistrosScreen(
     }
 
     val registrosAgrupados = registros.groupBy { it.dataCriacao }
+
+    var showBackupDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var emailBackup by remember {
+        mutableStateOf("")
+    }
+
+    var backupCodeGerado by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var backupCarregando by remember {
+        mutableStateOf(false)
+    }
+
+    var erroBackup by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    val scope = rememberCoroutineScope()
+    val backupService = remember {
+        BackupService(RetrofitClient.backupApi)
+    }
 
     Scaffold { innerPadding ->
 
@@ -136,6 +170,119 @@ fun RegistrosScreen(
                         }
                     }
                 }
+                item {
+                    Spacer(modifier = Modifier.height(24.dp)) // Espaço entre o último registro e o botão
+                    Button(
+                        onClick = {
+                            showBackupDialog = true
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Salvar backup online")
+                    }
+                }
+            }
+
+            if (showBackupDialog) {
+                AlertDialog(
+                    onDismissRequest = {
+                        if (!backupCarregando) {
+                            showBackupDialog = false
+                        }
+                    },
+                    title = {
+                        Text("Salvar backup online")
+                    },
+                    text = {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = "Informe seu email. Vamos gerar um código único para você recuperar seus registros depois."
+                            )
+
+                            OutlinedTextField(
+                                value = emailBackup,
+                                onValueChange = { emailBackup = it },
+                                label = { Text("Email") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            erroBackup?.let {
+                                Text(
+                                    text = it,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+
+                            backupCodeGerado?.let { codigo ->
+                                Text(
+                                    text = "Código do backup: $codigo",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+
+                                Text(
+                                    text = "Guarde esse código. Ele será necessário para restaurar seus registros."
+                                )
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            enabled = !backupCarregando && backupCodeGerado == null,
+                            onClick = {
+                                if (emailBackup.isBlank()) {
+                                    erroBackup = "Informe um email válido."
+                                    return@Button
+                                }
+
+                                scope.launch {
+                                    backupCarregando = true
+                                    erroBackup = null
+
+                                    try {
+                                        val registros = registroDao.getTodosOrdenadosPorData()
+
+                                        val codigo = backupService.salvarBackupOnline(
+                                            email = emailBackup.trim(),
+                                            registros = registros
+                                        )
+
+                                        backupCodeGerado = codigo
+                                    } catch (e: Exception) {
+                                        erroBackup = e.message ?: "Erro ao salvar backup."
+                                    } finally {
+                                        backupCarregando = false
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(
+                                if (backupCarregando) {
+                                    "Salvando..."
+                                } else if (backupCodeGerado == null) {
+                                    "Salvar"
+                                } else {
+                                    "Salvo"
+                                }
+                            )
+                        }
+                    },
+                    dismissButton = {
+                        OutlinedButton(
+                            enabled = !backupCarregando,
+                            onClick = {
+                                showBackupDialog = false
+                                backupCodeGerado = null
+                                erroBackup = null
+                            }
+                        ) {
+                            Text("Fechar")
+                        }
+                    }
+                )
             }
         }
     }
