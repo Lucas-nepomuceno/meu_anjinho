@@ -16,11 +16,11 @@ data class Crianca(
 
 @Entity
 data class Registro(
-    @PrimaryKey(autoGenerate = true) val uid: Int,
+    @PrimaryKey(autoGenerate = true) val uid: Int = 0,
     @ColumnInfo(name = "titulo") val titulo: String,
     @ColumnInfo(name = "descricao") val descricao: String,
-    @ColumnInfo(name = "crianca_id") val criancaId: Int,
-    @ColumnInfo(name = "arquivos_associados") val arquivos_associados: String,
+    @ColumnInfo(name = "crianca_id") val criancaId: Int?,
+    @ColumnInfo(name = "arquivos_associados") val arquivos_associados: String? = "",
     @ColumnInfo(name = "data_criacao") val dataCriacao: String
 )
 

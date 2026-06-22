@@ -5,6 +5,16 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import android.content.Context
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -20,16 +30,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.meuanjinho.R
+import com.example.meuanjinho.database.AppDatabase
+import com.example.meuanjinho.database.Crianca
+import com.example.meuanjinho.database.Registro
 import com.example.meuanjinho.utils.calcularIdade
+import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.util.TimeZone
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdicionarRegistroScreen(
-    navController: NavController
+    navController: NavController,
+    db: AppDatabase
 ) {
     var titulo by remember { mutableStateOf("") }
     var descricao by remember { mutableStateOf("") }
+    var caminhos by remember { mutableStateOf("") }
+
 
     val bannerImage = remember {
         listOf(
@@ -53,19 +72,20 @@ fun AdicionarRegistroScreen(
         descricoes.random()
     }
 
-    data class Crianca(
-        val nome: String,
-        val sexo: String,
-        val dataNascimento: String
-    )
+    val hoje = LocalDate.now()
 
-    val criancas = remember {
-        listOf(
-            Crianca("Lucas", "M", "2024-03-10"),
-            Crianca("Maria", "F", "2023-11-05"),
-            Crianca("João", "M", "2025-01-20")
-        )
+    val criancaDao = db.criancaDao()
+
+    var criancas by remember {
+        mutableStateOf<List<Crianca>>(emptyList())
     }
+
+    LaunchedEffect(Unit) {
+        criancas = criancaDao.getAll()
+    }
+
+    val registroDao = db.registroDao()
+
 
     var criancaSelecionada by remember { mutableStateOf<Crianca?>(null) }
 
@@ -192,6 +212,18 @@ fun AdicionarRegistroScreen(
             }
             Button(
                 onClick = {
+                    scope.launch {
+
+                        registroDao.insertAll(
+                            Registro(
+                                titulo = titulo,
+                                descricao = descricao,
+                                criancaId = criancaSelecionada?.criancaId,
+                                dataCriacao = hoje.toString(),
+                                arquivos_associados = caminhos
+                            )
+                        )
+                    }
                     navController.navigate("home") {
                         popUpTo("home") { inclusive = false }
                         launchSingleTop = true
@@ -238,13 +270,9 @@ fun AdicionarRegistroScreen(
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
                             // OPÇÃO 1: CÂMERA
-                            PhotoOptionButton(
-                                icon = R.drawable.photo_camera_24,
-                                label = "Tirar Foto",
-                                onClick = {
-                                    // TODO: Lógica para abrir a Câmera do Android
-                                    showPhotoSheet = false
-                                }
+                            YourPhotoScreen(
+                                caminhoFotoTirada = caminhos,
+                                onAlterarCaminhoFotoTirada = {caminhos = it}
                             )
 
                             // OPÇÃO 2: GALERIA
@@ -298,4 +326,72 @@ fun PhotoOptionButton(
             )
         }
     }
+}
+
+@Composable
+fun YourPhotoScreen(
+    caminhoFotoTirada: String,
+    onAlterarCaminhoFotoTirada: (String) -> Unit
+) {
+    val context = LocalContext.current
+
+    var photoUri by remember { mutableStateOf<Uri?>(null) }
+    var photoFile by remember { mutableStateOf<File?>(null) }
+    var showPhotoSheet by remember { mutableStateOf(true) }
+
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && photoFile != null) {
+            val absolutePath = photoFile!!.absolutePath
+            if (caminhoFotoTirada == "") onAlterarCaminhoFotoTirada(absolutePath) else onAlterarCaminhoFotoTirada(
+                "$caminhoFotoTirada,$absolutePath"
+            )
+
+            println("Foto salva com sucesso em: $absolutePath")
+        } else {
+            println("Usuário cancelou ou falhou ao tirar a foto.")
+        }
+    }
+
+    // Função auxiliar para criar o arquivo no appDirectory e disparar a câmera
+    fun launchCamera() {
+        val file = createImageFile(context)
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
+        photoFile = file
+        photoUri = uri
+
+        takePictureLauncher.launch(uri)
+    }
+
+    PhotoOptionButton(
+        icon = R.drawable.photo_camera_24,
+        label = "Tirar Foto",
+        onClick = {
+            launchCamera()
+            showPhotoSheet = false
+        }
+    )
+}
+
+/**
+ * Cria um arquivo de imagem vazio dentro do diretório interno do App (appDirectory).
+ * Os arquivos aqui são privados do app e são apagados se o app for desinstalado.
+ */
+private fun createImageFile(context: Context): File {
+    val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+    val imageFileName = "JPEG_${timeStamp}_"
+
+    // context.filesDir aponta direto para o appDirectory interno seguro
+    val storageDir = context.filesDir
+
+    return File.createTempFile(
+        imageFileName, /* prefix */
+        ".jpg",        /* suffix */
+        storageDir     /* directory */
+    )
 }

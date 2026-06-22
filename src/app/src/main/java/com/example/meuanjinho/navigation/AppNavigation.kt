@@ -87,7 +87,7 @@ fun AppNavigation(
             }
 
             composable("registros") {
-                RegistrosScreen()
+                RegistrosScreen(db)
             }
 
             composable("criancas") {
@@ -95,7 +95,7 @@ fun AppNavigation(
             }
 
             composable("adicionar_registro") {
-                AdicionarRegistroScreen(navController)
+                AdicionarRegistroScreen(navController, db)
             }
 
         }
