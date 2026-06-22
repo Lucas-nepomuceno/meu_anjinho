@@ -207,7 +207,10 @@ fun DetalheRegistroScreen(
 
                 OutlinedButton(
                     onClick = {
-                        // TODO: implementar compartilhamento
+                        compartilharRegistro(
+                            context = context,
+                            registro = registroAtual
+                        )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -305,5 +308,61 @@ private fun abrirArquivoComFotos(
 
     context.startActivity(
         Intent.createChooser(intent, "Abrir foto")
+    )
+}
+
+private fun compartilharRegistro(
+    context: Context,
+    registro: Registro
+) {
+    val caminhos = registro.arquivos_associados
+        ?.split(",")
+        ?.map { it.trim() }
+        ?.filter { it.isNotBlank() }
+        ?: emptyList()
+
+    val uris = caminhos.mapNotNull { caminho ->
+        val arquivo = File(caminho)
+
+        if (arquivo.exists()) {
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                arquivo
+            )
+        } else {
+            null
+        }
+    }
+
+    val textoCompartilhamento = buildString {
+        appendLine(registro.dataCriacao)
+        appendLine(registro.titulo)
+        appendLine()
+        appendLine(registro.descricao)
+    }
+
+    val intent = if (uris.isEmpty()) {
+        Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, textoCompartilhamento)
+        }
+    } else {
+        Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+            type = "image/*"
+            putExtra(Intent.EXTRA_TEXT, textoCompartilhamento)
+            putParcelableArrayListExtra(
+                Intent.EXTRA_STREAM,
+                ArrayList<Uri>(uris)
+            )
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+    }
+
+    context.startActivity(
+        Intent.createChooser(
+            intent,
+            "Compartilhar registro"
+        )
     )
 }
